@@ -1,0 +1,4 @@
+project_id = "zyyjukmesxgnrikayeyk"
+
+[functions.esp32-data]
+verify_jwt = false
