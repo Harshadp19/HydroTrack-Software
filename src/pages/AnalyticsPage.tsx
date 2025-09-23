@@ -3,8 +3,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ChartWidget } from '@/components/dashboard/ChartWidget';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-
 import { DashboardLayout } from './DashboardPage';
+
+// ✅ Demo chart data updated with `time` property
+const soilMoistureData = [
+  { name: "6AM", value: 45, time: "06:00" },
+  { name: "9AM", value: 42, time: "09:00" },
+  { name: "12PM", value: 38, time: "12:00" },
+  { name: "3PM", value: 35, time: "15:00" },
+  { name: "6PM", value: 41, time: "18:00" },
+  { name: "9PM", value: 43, time: "21:00" },
+];
+
+const rainfallData = [
+  { name: "6AM", value: 230, time: "06:00" },
+  { name: "9AM", value: 410, time: "09:00" },
+  { name: "12PM", value: 680, time: "12:00" },
+  { name: "3PM", value: 320, time: "15:00" },
+  { name: "6PM", value: 180, time: "18:00" },
+  { name: "9PM", value: 50, time: "21:00" },
+];
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
@@ -31,7 +49,7 @@ export default function AnalyticsPage() {
           .eq('sensors.user_id', user?.id)
           .order('timestamp', { ascending: false })
           .limit(100);
-        
+
         setSensorData(readings || []);
       }
     } catch (error) {
@@ -52,76 +70,80 @@ export default function AnalyticsPage() {
   return (
     <DashboardLayout>
       <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-          <p className="text-muted-foreground">Detailed sensor data and performance metrics</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+            <p className="text-muted-foreground">Detailed sensor data and performance metrics</p>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Soil Moisture Zone A</CardTitle>
+              <CardDescription>Zone A soil moisture levels over time</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartWidget type="line" data={soilMoistureData} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Soil Moisture Zone B</CardTitle>
+              <CardDescription>Zone B soil moisture levels over time</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartWidget type="area" data={soilMoistureData} />
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Rainfall Measurements</CardTitle>
+              <CardDescription>Water volume collected via ultrasonic sensor</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartWidget type="bar" data={rainfallData} />
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle>Soil Moisture Zone A</CardTitle>
-            <CardDescription>Zone A soil moisture levels over time</CardDescription>
+            <CardTitle>Sensor Performance Summary</CardTitle>
+            <CardDescription>Overview of all sensor readings and status</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartWidget type="line" />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Soil Moisture Zone B</CardTitle>
-            <CardDescription>Zone B soil moisture levels over time</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartWidget type="area" />
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Rainfall Measurements</CardTitle>
-            <CardDescription>Water volume collected via ultrasonic sensor</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartWidget type="bar" />
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Sensor Performance Summary</CardTitle>
-          <CardDescription>Overview of all sensor readings and status</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {sensorData.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No sensor data available yet.</p>
-              <p className="text-sm text-muted-foreground mt-2">Add sensors and start collecting data to see analytics here.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {sensorData.slice(0, 5).map((reading) => (
-                <div key={reading.id} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <div>
-                    <p className="font-medium">{reading.sensors?.name}</p>
-                    <p className="text-sm text-muted-foreground">{reading.sensors?.type}</p>
+            {sensorData.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No sensor data available yet.</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Add sensors and start collecting data to see analytics here.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {sensorData.slice(0, 5).map((reading) => (
+                  <div key={reading.id} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{reading.sensors?.name}</p>
+                      <p className="text-sm text-muted-foreground">{reading.sensors?.type}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">
+                        {reading.value} {reading.unit}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(reading.timestamp).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">{reading.value} {reading.unit}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(reading.timestamp).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
